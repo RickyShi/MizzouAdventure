@@ -22,27 +22,28 @@ public final class R {
         public static final int stress=0x7f020008;
     }
     public static final class id {
-        public static final int Connect=0x7f080014;
-        public static final int Disable=0x7f080016;
-        public static final int Enable=0x7f080015;
-        public static final int btnCancel=0x7f08000b;
+        public static final int Connect=0x7f080015;
+        public static final int Disable=0x7f080017;
+        public static final int Enable=0x7f080016;
+        public static final int btnCancel=0x7f08000c;
         public static final int btnSetUID=0x7f080009;
         public static final int btnStart=0x7f08000a;
         public static final int button_scan=0x7f080004;
-        public static final int editTextDialogUserInput=0x7f080012;
-        public static final int layout_root=0x7f080010;
+        public static final int editTextDialogUserInput=0x7f080013;
+        public static final int layout_root=0x7f080011;
+        public static final int mTextField=0x7f08000b;
         public static final int mainView=0x7f080005;
-        public static final int menu_settings=0x7f080013;
+        public static final int menu_settings=0x7f080014;
         public static final int new_devices=0x7f080003;
         public static final int paired_devices=0x7f080001;
-        public static final int textView1=0x7f080011;
+        public static final int textView1=0x7f080012;
         public static final int title_new_devices=0x7f080002;
         public static final int title_paired_devices=0x7f080000;
-        public static final int tvEDA=0x7f08000e;
-        public static final int tvEDAVaule=0x7f08000f;
-        public static final int tvFright=0x7f08000c;
+        public static final int tvEDA=0x7f08000f;
+        public static final int tvEDAVaule=0x7f080010;
+        public static final int tvFright=0x7f08000d;
         public static final int tvSetData=0x7f080006;
-        public static final int tvTest=0x7f08000d;
+        public static final int tvTest=0x7f08000e;
         public static final int tvUID=0x7f080008;
         public static final int tvUIDText=0x7f080007;
     }

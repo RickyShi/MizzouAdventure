@@ -30,6 +30,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -86,7 +87,7 @@ public class MainActivity extends Activity
 	
 	private static boolean startFlag = false;
 	
-	public String datatoWrite;
+	public String datatoWrite="";
 	private TransmitData transmitData;
 	private DeviceConnect SensorConnect;
 	
@@ -96,6 +97,10 @@ public class MainActivity extends Activity
 	private float avgTemp = 0;
 	private float avgEDA = 0;
 	private final String USER_INPUT_HINT = "Please input 4 digits for UserID!";
+	
+	private TextView mTextField;
+	private int i = 0;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	
@@ -120,7 +125,7 @@ public class MainActivity extends Activity
         btnStart=(Button)findViewById(R.id.btnStart);
         btnCancel=(Button)findViewById(R.id.btnCancel);
         btnSetUID=(Button)findViewById(R.id.btnSetUID);
-        
+        mTextField=(TextView)findViewById(R.id.mTextField);
         btnSetUID.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -175,8 +180,46 @@ public class MainActivity extends Activity
 					if (UID.length()!=4){
 						Toast.makeText(getApplicationContext(),"User ID must be 4 digits.",Toast.LENGTH_LONG).show();
 					}
-					else
+					else {
 						startFlag = true;
+						new CountDownTimer(30000, 1000) {
+
+						     public void onTick(long millisUntilFinished) {
+						         mTextField.setText("seconds remaining: " + millisUntilFinished / 1000);
+						     }
+
+						     public void onFinish() {
+						        mTextField.setText("done!");
+						        startFlag = false;
+								UID = "null";
+								//tvUID.setText(UID);
+								//transmitData.cancel(true);
+								if (SensorConnect!=null)
+								SensorConnect.disconnect();
+								//tvSetData.setText("not connected");
+								Iterator<Float> it = TempList.iterator();
+								while(it.hasNext()) {
+				        			avgTemp += it.next().floatValue();
+				        		}
+								avgTemp = avgTemp / TempList.size();
+								it = EDAList.iterator();
+								while(it.hasNext()) {
+				        			avgEDA += it.next().floatValue();
+				        		}
+								avgEDA = avgEDA / EDAList.size();
+								if (TempList!=null)
+									TempList.clear();
+								if (EDAList!=null)
+									EDAList.clear();
+								tvTest.setText(String.valueOf(avgTemp));
+								tvEDAVaule.setText(String.valueOf(avgEDA));
+								avgTemp = 0;
+								avgEDA = 0;
+								i = 0;
+								datatoWrite = "";
+						     }
+						  }.start();
+					}
 //					if (TempList!=null)
 //						TempList.clear();
 //					if (EDAList!=null)
@@ -199,6 +242,7 @@ public class MainActivity extends Activity
 				UID = "null";
 				//tvUID.setText(UID);
 				//transmitData.cancel(true);
+				if (SensorConnect!=null)
 				SensorConnect.disconnect();
 				//tvSetData.setText("not connected");
 				Iterator<Float> it = TempList.iterator();
@@ -219,6 +263,8 @@ public class MainActivity extends Activity
 				tvEDAVaule.setText(String.valueOf(avgEDA));
 				avgTemp = 0;
 				avgEDA = 0;
+				i = 0;
+				datatoWrite = "";
 			}
 	});
         
@@ -342,23 +388,23 @@ public class MainActivity extends Activity
 	                String[] splitString = readMessage.split(",");
 	                if(splitString.length == 7 && Math.abs(Float.parseFloat(splitString[3]))<=2.0) {
 		                try {
+		                	i++;
 		                	//4: battery, 5: Temperature, 6: EDA
 		                	Calendar cal=Calendar.getInstance();
 		        			cal.setTimeZone(TimeZone.getTimeZone("US/Central"));			
 		        			String currentTime=String.valueOf(cal.getTime());				
-		        			datatoWrite=currentTime+","+splitString[3]+","+
+		        			datatoWrite+=currentTime+","+splitString[3]+","+
 		        							splitString[2]+","+
 		        							splitString[1]+","+
 		        					        splitString[5]+","+
-		        					        String.valueOf(Float.parseFloat(splitString[6]))+"\r\n";
+		        					        String.valueOf(Float.parseFloat(splitString[6]))+"\n";
 		                } catch (NumberFormatException e) {
 		                	Log.i(TAG, "FAIL");
 		                }	
 //		                Log.d("addTest",datatoWrite);
 //	                	Log.d("addTest","-----"+ splitString.length +"--------");
 		                filename = "WristSensor"+UID+".txt";
-						transmitData=new TransmitData();
-						transmitData.execute(UID,datatoWrite);
+						
 	                	File f = new File(BASE_PATH, filename);
 	                	try {
 							writeToFile(f,datatoWrite);
@@ -368,6 +414,12 @@ public class MainActivity extends Activity
 						}
 	                	TempList.add(Float.parseFloat(splitString[5]));
 	                	EDAList.add(Float.parseFloat(splitString[6]));
+	                	if (i==30){
+	                		transmitData=new TransmitData();
+							transmitData.execute(UID,datatoWrite);
+							i=0;
+							datatoWrite = "";
+	                	}
 	                }
             	}
                 break;
@@ -416,8 +468,8 @@ public class MainActivity extends Activity
 	         String dataToSend=strings[1];
 	         if(checkDataConnectivity())
 	 		{
-	         HttpPost request = new HttpPost("http://babbage.cs.missouri.edu/~rs79c/MizzouAdventure/w.php");
-	         //HttpPost request = new HttpPost("http://dslsrv8.cs.missouri.edu/~rs79c/Server/Test/writeArrayToFile.php");
+//	         HttpPost request = new HttpPost("http://babbage.cs.missouri.edu/~rs79c/MizzouAdventure/w.php");
+	         HttpPost request = new HttpPost("http://how-shocking-app-102417.use1-2.nitrousbox.com/submit.php");
 	         List<NameValuePair> params = new ArrayList<NameValuePair>();
 	         //file_name 
 	         params.add(new BasicNameValuePair("uid",tuid));        
@@ -429,7 +481,9 @@ public class MainActivity extends Activity
 	             HttpResponse response = new DefaultHttpClient().execute(request);
 	             if(response.getStatusLine().getStatusCode() == 200){
 	                 String result = EntityUtils.toString(response.getEntity());
-	                 Log.d("Sensor Data Point Info",result);                
+	                 Log.d("Sensor Data Point Info",result);
+//	                 File f = new File(BASE_PATH, "responses");
+//	                 writeToFile(f,response+"\n");
 	                // Log.d("Wrist Sensor Data Point Info","Data Point Successfully Uploaded!");
 	             }
 	             return true;
